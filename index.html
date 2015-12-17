@@ -4,7 +4,7 @@
 		<meta charset="utf-8">
 		<title></title>
 		<script src="https://code.jquery.com/jquery-2.1.4.min.js" charset="utf-8"></script>
-		<script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBnL5EAkm1Bp_taY8fLn0wrpNuWyJ8UMAc"></script>
+		<script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBnL5EAkm1Bp_taY8fLn0wrpNuWyJ8UMAc&libraries=places"></script>
 		<script type="text/javascript">
 
 			$(function(){
@@ -39,16 +39,40 @@
 					}
 
 					//place api json串接
-					$.ajax({
-						url: "http://localhost:9000/proxy/maps.googleapis.com/maps/api/place/nearbysearch/json?location="+$lat+","+$lng+"&radius=500&types=food&key="+apiKey+"&callback=myLocation",
-						dataType: 'json',
-						crossDomain: true,
-						success: function(data) {
-					      output(data);
-					    },error: function(xhr, ajaxOptions, thrownError) {
-					      alert("load errors");
-					  }
-					});
+					// $.ajax({
+					// 	url: "http://localhost:9000/proxy/maps.googleapis.com/maps/api/place/nearbysearch/json?location="+$lat+","+$lng+"&radius=500&types=food&key="+apiKey+"&callback=myLocation",
+					// 	dataType: 'json',
+					// 	crossDomain: true,
+					// 	success: function(data) {
+					//       output(data);
+					//     },error: function(xhr, ajaxOptions, thrownError) {
+					//       alert("load errors");
+					//   }
+					// });
+
+					var service;
+					var settings = {
+						location: new google.maps.LatLng($lat, $lng),
+						radius: '1000',
+						types: ['food']
+					};
+
+					service = new google.maps.places.PlacesService(map);
+					service.nearbySearch(settings, success);
+
+					function success(results){
+						$("body").append("<ul class='lists'></ul>");
+						var dataDisc = results;
+						$.each(dataDisc, function(index,value){
+							if(!!value.photos){
+								var $imgUri = value.photos[0].getUrl({'maxWidth':300});
+								$(".lists").append("<li><img src="+$imgUri+">"+value.name+"</li>");
+							}else{
+								$(".lists").append("<li>"+value.name+"</li>");
+							}
+
+						});
+					}
 
 					function output(jdata){
 						$("body").append("<ul class='lists'></ul>");
@@ -58,7 +82,7 @@
 
 							if(!!value.photos){
 								var $imgKey = value.photos[0].photo_reference;
-								$(".lists").append("<li><img src=https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photoreference="+$imgKey+"&key="+apiKey+">"+value.name+"</li>");
+								$(".lists").append("<li><img src=https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photoreference="+$imgKey+"&key="+apiKey+"><span>"+value.name+"</span></li>");
 							}else{
 								$(".lists").append("<li>"+value.name+"</li>");
 							}
